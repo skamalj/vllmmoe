@@ -7,7 +7,7 @@ ARG PIP_EXTRA="--no-cache-dir"
 ARG TORCH_CUDA_VERSION="cu121"          # matches PyTorch wheels (cu121 is fine on CUDA 12.3 host)
 ARG TORCH_VERSION="2.4.1"               # pin as you like
 ARG VLLM_VERSION="0.10.0"               # or 'nightly' or a git+https
-ARG NVSHMEM_VER="2.10.0-1"              # pin to what your cluster driver supports
+ARG NVSHMEM_VER="3.2.5-1"              # pin to what your cluster driver supports
 ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
 
 # Architectures: 9.0a for H100/H800 (Hopper). Add others if needed.
@@ -33,13 +33,35 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 
 # ---------- Install NVSHMEM (needed by DeepEP/PPLX multi-node paths) ----------
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
-RUN wget -O /tmp/nvshmem.deb "${NVSHMEM_URL}" && \
-    dpkg -i /tmp/nvshmem.deb && rm -f /tmp/nvshmem.deb
-RUN apt-get update && apt install libnvshmem3-cuda-12 libnvshmem3-dev-cuda-12 -y
-RUN ls -l /opt
-ENV NVSHMEM_HOME=/usr
-ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:${LD_LIBRARY_PATH}
+RUN wget https://developer.nvidia.com/downloads/assets/secure/nvshmem/nvshmem_src_"${NVSHMEM_VER}".txz
+RUN mkdir nvshmem_src_${NVSHMEM_VER}
+RUN tar xf nvshmem_src_${NVSHMEM_VER}.txz -C nvshmem_src_${NVSHMEM_VER}
+RUN cd nvshmem_src_${NVSHMEM_VER}/nvshmem_src
+RUN mkdir -p build
+RUN cd build
+RUN cmake \
+    -DNVSHMEM_PREFIX=/opt/nvshmem \
+    -DCMAKE_CUDA_ARCHITECTURES=90a \
+    -DNVSHMEM_MPI_SUPPORT=1 \
+    -DNVSHMEM_PMIX_SUPPORT=1 \
+    -DNVSHMEM_LIBFABRIC_SUPPORT=1 \
+    -DNVSHMEM_IBRC_SUPPORT=1 \
+    -DNVSHMEM_IBGDA_SUPPORT=1 \
+    -DNVSHMEM_BUILD_TESTS=1 \
+    -DNVSHMEM_BUILD_EXAMPLES=1 \
+    -DNVSHMEM_BUILD_HYDRA_LAUNCHER=1 \
+    -DNVSHMEM_BUILD_TXZ_PACKAGE=1 \
+    -DMPI_HOME=/opt/amazon/openmpi \
+    -DPMIX_HOME=/opt/amazon/pmix \
+    -DGDRCOPY_HOME=/opt/gdrcopy \
+    -DLIBFABRIC_HOME=/opt/amazon/efa \
+    -G Ninja \
+    ..
+RUN ninja build
+RUN sudo ninja install
 
+ENV NVSHMEM_HOME=/opt/nvshmem
+ENV LD_LIBRARY_PATH=$NVSHMEM_HOME/lib:$LD_LIBRARY_PATH
 # ---------- Build & install vLLM ----------
 # Use extras as needed (flashinfer is optional and version-sensitive).
 RUN python3 -m pip install ${PIP_EXTRA} "vllm==${VLLM_VERSION}"
@@ -79,8 +101,8 @@ RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
              libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
 
-ENV NVSHMEM_DIR=/opt
-RUN ls -l /opt
+ENV NVSHMEM_DIR=$NVSHMEM_HOME
+
 # Verify Install
 RUN /opt/gdrcopy/bin/gdrcopy_copybw
 
