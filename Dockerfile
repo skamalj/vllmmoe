@@ -32,7 +32,36 @@ RUN python3 -m pip install ${PIP_EXTRA} \
     --index-url https://download.pytorch.org/whl/${TORCH_CUDA_VERSION}
 
 # ---------- Install NVSHMEM (needed by DeepEP/PPLX multi-node paths) ----------
+
+# Install Amazon MPI
+RUN apt-get update && apt-get install -y wget \
+    && wget https://aws-hpc-tap.s3.amazonaws.com/amd/2024.2.0/ubuntu/22.04/x86_64/amazon-efa-repo-ubuntu2204-latest.deb \
+    && dpkg -i amazon-efa-repo-ubuntu2204-latest.deb \
+    && apt-get update \
+    && apt-get install -y libfabric amazon-efa-driver amazon-efa-config amazon-efa-mpi amazon-efa-mpi-devel \
+    && rm -f amazon-efa-repo-ubuntu2204-latest.deb
+
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
+
+# Install GDR Vopy
+RUN sudo apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
+RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
+RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
+RUN cd gdrcopy-2.4.4/
+RUN sudo make prefix=/opt/gdrcopy -j$(nproc) install
+
+RUN cd packages/
+RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
+RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
+             gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
+             gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
+             libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
+
+ENV NVSHMEM_DIR=$NVSHMEM_HOME
+
+# Verify Install
+RUN /opt/gdrcopy/bin/gdrcopy_copybw
+
 RUN wget https://developer.nvidia.com/downloads/assets/secure/nvshmem/nvshmem_src_"${NVSHMEM_VER}".txz
 RUN mkdir nvshmem_src_${NVSHMEM_VER}
 RUN tar xf nvshmem_src_${NVSHMEM_VER}.txz -C nvshmem_src_${NVSHMEM_VER}
@@ -89,24 +118,6 @@ RUN python3 -m pip wheel . -w dist && \
 #    python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
 
-# Install GDR Vopy
-RUN sudo apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
-RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
-RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
-RUN cd gdrcopy-2.4.4/
-RUN sudo make prefix=/opt/gdrcopy -j$(nproc) install
-
-RUN cd packages/
-RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
-RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
-             gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
-             gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
-             libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
-
-ENV NVSHMEM_DIR=$NVSHMEM_HOME
-
-# Verify Install
-RUN /opt/gdrcopy/bin/gdrcopy_copybw
 
 # ---------- Build DeepGEMM (FP8) ----------
 WORKDIR /opt/src
