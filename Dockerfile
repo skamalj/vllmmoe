@@ -36,8 +36,7 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 RUN wget -O /tmp/nvshmem.deb "${NVSHMEM_URL}" && \
     dpkg -i /tmp/nvshmem.deb && rm -f /tmp/nvshmem.deb
 RUN apt-get update && apt install libnvshmem3-cuda-12 libnvshmem3-dev-cuda-12 -y
-# Set environment
-ENV NVSHMEM_HOME=/usr         # runtime & dev libs are under /usr/lib / /usr/include
+ENV NVSHMEM_HOME=/usr
 ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:${LD_LIBRARY_PATH}
 
 # ---------- Build & install vLLM ----------
