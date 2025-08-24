@@ -80,7 +80,7 @@ RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
 
 ENV NVSHMEM_DIR=/opt
-
+RUN ls -l /opt
 # Verify Install
 RUN /opt/gdrcopy/bin/gdrcopy_copybw
 
