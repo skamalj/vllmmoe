@@ -36,6 +36,7 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 RUN wget -O /tmp/nvshmem.deb "${NVSHMEM_URL}" && \
     dpkg -i /tmp/nvshmem.deb && rm -f /tmp/nvshmem.deb
 RUN apt-get update && apt install libnvshmem3-cuda-12 libnvshmem3-dev-cuda-12 -y
+RUN ls -l /opt
 ENV NVSHMEM_HOME=/usr
 ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:${LD_LIBRARY_PATH}
 
@@ -63,6 +64,26 @@ RUN python3 setup.py bdist_wheel && \
     python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
 # ---------- Build DeepGEMM (FP8) ----------
+
+# Install GDR Vopy
+RUN sudo apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
+RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
+RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
+RUN cd gdrcopy-2.4.4/
+RUN sudo make prefix=/opt/gdrcopy -j$(nproc) install
+
+RUN cd packages/
+RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
+RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
+             gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
+             gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
+             libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
+
+ENV NVSHMEM_DIR=/opt
+
+# Verify Install
+RUN /opt/gdrcopy/bin/gdrcopy_copybw
+
 WORKDIR /opt/src
 RUN git clone --depth=1 https://github.com/deepseek-ai/DeepGEMM.git
 WORKDIR /opt/src/DeepGEMM
