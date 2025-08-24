@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y wget \
     && wget https://efa-installer.amazonaws.com/aws-efa-installer-1.43.2.tar.gz \
     && tar -xf aws-efa-installer-1.43.2.tar.gz 
 WORKDIR aws-efa-installer 
-RUN ./efa_installer.sh -y
+RUN ./efa_installer.sh --mpi=openmpi4 -y
 RUN ls -l /opt/amazon/
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
 
