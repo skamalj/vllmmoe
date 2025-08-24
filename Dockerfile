@@ -38,7 +38,7 @@ RUN mkdir nvshmem_src_${NVSHMEM_VER}
 RUN tar xf nvshmem_src_${NVSHMEM_VER}.txz -C nvshmem_src_${NVSHMEM_VER}
 WORKDIR nvshmem_src_${NVSHMEM_VER}/nvshmem_src
 RUN mkdir -p build
-RUN cd build
+WORKDIR build
 RUN cmake \
     -DNVSHMEM_PREFIX=/opt/nvshmem \
     -DCMAKE_CUDA_ARCHITECTURES=90a \
@@ -62,6 +62,9 @@ RUN sudo ninja install
 
 ENV NVSHMEM_HOME=/opt/nvshmem
 ENV LD_LIBRARY_PATH=$NVSHMEM_HOME/lib:$LD_LIBRARY_PATH
+# For multi-node with ConnectX
+ENV NVSHMEM_REMOTE_TRANSPORT=ibrc
+ENV NVSHMEM_IB_ENABLE_IBGDA=1
 # ---------- Build & install vLLM ----------
 # Use extras as needed (flashinfer is optional and version-sensitive).
 RUN python3 -m pip install ${PIP_EXTRA} "vllm==${VLLM_VERSION}"
@@ -76,14 +79,14 @@ RUN python3 -m pip wheel . -w dist && \
     python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
 # ---------- Build PPLX kernels ----------
-WORKDIR /opt/src
-RUN git clone --depth=1 https://github.com/ppl-ai/pplx-kernels.git
-WORKDIR /opt/src/pplx-kernels
-# For Hopper:
-ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
-ENV NVSHMEM_DIR=/usr
-RUN python3 setup.py bdist_wheel && \
-    python3 -m pip install ${PIP_EXTRA} dist/*.whl
+#WORKDIR /opt/src
+#RUN git clone --depth=1 https://github.com/ppl-ai/pplx-kernels.git
+#WORKDIR /opt/src/pplx-kernels
+## For Hopper:
+#ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
+#ENV NVSHMEM_DIR=/usr
+#RUN python3 setup.py bdist_wheel && \
+#    python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
 
 # Install GDR Vopy
