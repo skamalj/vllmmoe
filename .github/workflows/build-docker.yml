@@ -15,8 +15,8 @@ jobs:
       IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/vllm-ep
       IMAGE_TAG: latest
       TORCH_VERSION: 2.4.1
-      VLLM_VERSION: "0.10.0"
-      NVSHMEM_VER: 2.10.0-1
+      VLLM_VERSION: "0.10.1.1"
+      NVSHMEM_VER: 3.2.5-1
       CUDA_VERSION: 12.3.2
       PYTHON_VERSION: "3.10"
 

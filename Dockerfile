@@ -6,7 +6,7 @@ ARG PYTHON_VERSION="3.10"
 ARG PIP_EXTRA="--no-cache-dir"
 ARG TORCH_CUDA_VERSION="cu121"          # matches PyTorch wheels (cu121 is fine on CUDA 12.3 host)
 ARG TORCH_VERSION="2.4.1"               # pin as you like
-ARG VLLM_VERSION="0.10.0"               # or 'nightly' or a git+https
+ARG VLLM_VERSION="0.10.1.1"               # or 'nightly' or a git+https
 ARG NVSHMEM_VER="3.2.5-1"              # pin to what your cluster driver supports
 ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
 
@@ -85,7 +85,6 @@ ENV NVSHMEM_DIR=/usr
 RUN python3 setup.py bdist_wheel && \
     python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
-# ---------- Build DeepGEMM (FP8) ----------
 
 # Install GDR Vopy
 RUN sudo apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
@@ -106,6 +105,7 @@ ENV NVSHMEM_DIR=$NVSHMEM_HOME
 # Verify Install
 RUN /opt/gdrcopy/bin/gdrcopy_copybw
 
+# ---------- Build DeepGEMM (FP8) ----------
 WORKDIR /opt/src
 RUN git clone --depth=1 https://github.com/deepseek-ai/DeepGEMM.git
 WORKDIR /opt/src/DeepGEMM
