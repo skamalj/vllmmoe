@@ -36,7 +36,7 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 RUN wget https://developer.nvidia.com/downloads/assets/secure/nvshmem/nvshmem_src_"${NVSHMEM_VER}".txz
 RUN mkdir nvshmem_src_${NVSHMEM_VER}
 RUN tar xf nvshmem_src_${NVSHMEM_VER}.txz -C nvshmem_src_${NVSHMEM_VER}
-RUN cd nvshmem_src_${NVSHMEM_VER}/nvshmem_src
+WORKDIR nvshmem_src_${NVSHMEM_VER}/nvshmem_src
 RUN mkdir -p build
 RUN cd build
 RUN cmake \
