@@ -2,7 +2,7 @@
 FROM nvidia/cuda:12.3.2-devel-ubuntu22.04 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION="3.10"
 ARG PIP_EXTRA="--no-cache-dir"
 ARG TORCH_CUDA_VERSION="cu121"          # matches PyTorch wheels (cu121 is fine on CUDA 12.3 host)
 ARG TORCH_VERSION="2.4.1"               # pin as you like
