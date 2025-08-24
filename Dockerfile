@@ -9,6 +9,7 @@ ARG TORCH_VERSION="2.4.1"               # pin as you like
 ARG VLLM_VERSION="0.10.1.1"               # or 'nightly' or a git+https
 ARG NVSHMEM_VER="3.2.5-1"              # pin to what your cluster driver supports
 ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
+ARG EFA_INSTALLER_VERSION=latest
 
 # Architectures: 9.0a for H100/H800 (Hopper). Add others if needed.
 ARG TORCH_CUDA_ARCH_LIST="9.0a+PTX"
@@ -34,11 +35,13 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 # ---------- Install NVSHMEM (needed by DeepEP/PPLX multi-node paths) ----------
 
 # Install Amazon MPI
-RUN apt-get update && apt-get install -y wget \
-    && wget https://efa-installer.amazonaws.com/aws-efa-installer-1.43.2.tar.gz \
-    && tar -xf aws-efa-installer-1.43.2.tar.gz 
-WORKDIR aws-efa-installer 
-RUN ./efa_installer.sh --mpi=openmpi4 -y
+## Install EFA installer
+RUN cd $HOME \
+    && curl -O https://efa-installer.amazonaws.com/aws-efa-installer-${EFA_INSTALLER_VERSION}.tar.gz \
+    && tar -xf $HOME/aws-efa-installer-${EFA_INSTALLER_VERSION}.tar.gz \
+    && cd aws-efa-installer \
+    && ./efa_installer.sh -y -g -d --skip-kmod --skip-limit-conf --no-verify \
+    && rm -rf $HOME/aws-efa-installer
 RUN ls -l /opt/amazon/
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
 
