@@ -35,12 +35,11 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 
 # Install Amazon MPI
 RUN apt-get update && apt-get install -y wget \
-    && wget https://aws-hpc-tap.s3.amazonaws.com/amd/2024.2.0/ubuntu/22.04/x86_64/amazon-efa-repo-ubuntu2204-latest.deb \
-    && dpkg -i amazon-efa-repo-ubuntu2204-latest.deb \
-    && apt-get update \
-    && apt-get install -y libfabric amazon-efa-driver amazon-efa-config amazon-efa-mpi amazon-efa-mpi-devel \
-    && rm -f amazon-efa-repo-ubuntu2204-latest.deb
-
+    && wget https://efa-installer.amazonaws.com/aws-efa-installer-1.43.2.tar.gz \
+    && tar -xf aws-efa-installer-1.43.2.tar.gz 
+WORKDIR aws-efa-installer 
+RUN ./efa_installer.sh -y
+RUN ls -l /opt/amazon/
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
 
 # Install GDR Vopy
@@ -56,8 +55,6 @@ RUN sudo dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
              gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
              libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
-
-ENV NVSHMEM_DIR=$NVSHMEM_HOME
 
 # Verify Install
 RUN /opt/gdrcopy/bin/gdrcopy_copybw
@@ -80,7 +77,7 @@ RUN cmake \
     -DNVSHMEM_BUILD_EXAMPLES=1 \
     -DNVSHMEM_BUILD_HYDRA_LAUNCHER=1 \
     -DNVSHMEM_BUILD_TXZ_PACKAGE=1 \
-    -DMPI_HOME=/opt/amazon/openmpi \
+    -DMPI_HOME=/opt/amazon/openmpi5 \
     -DPMIX_HOME=/opt/amazon/pmix \
     -DGDRCOPY_HOME=/opt/gdrcopy \
     -DLIBFABRIC_HOME=/opt/amazon/efa \
