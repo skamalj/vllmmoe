@@ -57,7 +57,7 @@ RUN ls -l /opt/amazon/
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
 
 # Install GDR Vopy
-RUN sudo apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
+RUN apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
 RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
 RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
 RUN cd gdrcopy-2.4.4/
@@ -98,7 +98,7 @@ RUN cmake \
     -G Ninja \
     ..
 RUN ninja build
-RUN sudo ninja install
+RUN ninja install
 
 ENV NVSHMEM_HOME=/opt/nvshmem
 ENV LD_LIBRARY_PATH=$NVSHMEM_HOME/lib:$LD_LIBRARY_PATH
