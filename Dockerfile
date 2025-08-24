@@ -8,7 +8,7 @@ ARG TORCH_CUDA_VERSION="cu121"          # matches PyTorch wheels (cu121 is fine 
 ARG TORCH_VERSION="2.4.1"               # pin as you like
 ARG VLLM_VERSION="0.10.0"               # or 'nightly' or a git+https
 ARG NVSHMEM_VER="2.10.0-1"              # pin to what your cluster driver supports
-ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/redist/nvshmem/${NVSHMEM_VER}/nvshmem_${NVSHMEM_VER}_amd64_cuda12.x.deb"
+ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
 
 # Architectures: 9.0a for H100/H800 (Hopper). Add others if needed.
 ARG TORCH_CUDA_ARCH_LIST="9.0a+PTX"
@@ -35,7 +35,9 @@ RUN python3 -m pip install ${PIP_EXTRA} \
 # If your environment already has NVSHMEM on the host with proper mounts, you can skip this and rely on LD_LIBRARY_PATH.
 RUN wget -O /tmp/nvshmem.deb "${NVSHMEM_URL}" && \
     dpkg -i /tmp/nvshmem.deb && rm -f /tmp/nvshmem.deb
-ENV NVSHMEM_HOME=/opt/nvshmem
+RUN apt-get update && apt install libnvshmem3-cuda-12 libnvshmem3-dev-cuda-12 -y
+# Set environment
+ENV NVSHMEM_HOME=/usr         # runtime & dev libs are under /usr/lib / /usr/include
 ENV LD_LIBRARY_PATH=${NVSHMEM_HOME}/lib:${LD_LIBRARY_PATH}
 
 # ---------- Build & install vLLM ----------
