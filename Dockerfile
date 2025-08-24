@@ -58,6 +58,7 @@ RUN git clone --depth=1 https://github.com/ppl-ai/pplx-kernels.git
 WORKDIR /opt/src/pplx-kernels
 # For Hopper:
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
+ENV NVSHMEM_DIR=/usr
 RUN python3 setup.py bdist_wheel && \
     python3 -m pip install ${PIP_EXTRA} dist/*.whl
 
