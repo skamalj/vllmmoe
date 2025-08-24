@@ -23,6 +23,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget patchelf \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y software-properties-common \
+&& add-apt-repository universe \
+&& apt-get update \
+&& apt-get install -y \
+    pciutils \
+    environment-modules \
+    tcl \
+    libnl-3-dev \
+    libnl-route-3-dev
+
+
 RUN python3 -m pip install ${PIP_EXTRA} --upgrade pip wheel setuptools
 
 # ---------- Install PyTorch with CUDA ----------
