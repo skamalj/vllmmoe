@@ -59,12 +59,11 @@ RUN ls -l /opt/amazon/
 RUN apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
 WORKDIR /tmp
 RUN wget -O gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz && tar xvf /tmp/gdrcopy-v2.4.4.tar.gz
-RUN ls -l
 WORKDIR /tmp/gdrcopy-2.4.4
-RUN ls -l
 RUN make prefix=/opt/gdrcopy -j$(nproc) install
 
-WORKDIR /tmp/gdrcopy-2.4.4/packages/
+WORKDIR /tmp/gdrcopy-2.4.4/packages
+RUN ls -l
 RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
 RUN dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
