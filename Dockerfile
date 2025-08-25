@@ -67,7 +67,7 @@ RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
 RUN pwd
 RUN ls -l
 RUN dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
-             gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
+             gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.3.deb \
              gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
              libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
 
