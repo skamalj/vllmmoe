@@ -59,7 +59,8 @@ RUN ls -l /opt/amazon/
 RUN apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
 RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
 RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
-WORKDIR /tmp/gdrcopy-2.4.4/
+WORKDIR /tmp/gdrcopy-2.4.4
+RUN ls -l
 RUN make prefix=/opt/gdrcopy -j$(nproc) install
 
 WORKDIR /tmp/gdrcopy-2.4.4/packages/
