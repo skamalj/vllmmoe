@@ -8,11 +8,10 @@ ARG TORCH_CUDA_VERSION="cu121"          # matches PyTorch wheels (cu121 is fine 
 ARG TORCH_VERSION="2.4.1"               # pin as you like
 ARG VLLM_VERSION="0.10.1.1"               # or 'nightly' or a git+https
 ARG NVSHMEM_VER="3.2.5-1"              # pin to what your cluster driver supports
-ARG NVSHMEM_URL="https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.1-1_all.deb"
 ARG EFA_INSTALLER_VERSION=latest
 
 # Architectures: 9.0a for H100/H800 (Hopper). Add others if needed.
-ARG TORCH_CUDA_ARCH_LIST="9.0a+PTX"
+ARG TORCH_CUDA_ARCH_LIST="7.0;8.0;9.0a+PTX"
 
 # System deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -60,10 +59,10 @@ RUN ls -l /opt/amazon/
 RUN apt-get install -y build-essential devscripts debhelper fakeroot pkg-config dkms
 RUN wget -O /tmp/gdrcopy-v2.4.4.tar.gz https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v2.4.4.tar.gz
 RUN tar xf /tmp/gdrcopy-v2.4.4.tar.gz
-WORKDIR gdrcopy-2.4.4/
+WORKDIR /tmp/gdrcopy-2.4.4/
 RUN make prefix=/opt/gdrcopy -j$(nproc) install
 
-WORKDIR packages/
+WORKDIR /tmp/gdrcopy-2.4.4/packages/
 RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
 RUN dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
@@ -73,12 +72,13 @@ RUN dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
 # Verify Install
 RUN /opt/gdrcopy/bin/gdrcopy_copybw
 
+WORKDIR /tmp
 RUN wget https://developer.nvidia.com/downloads/assets/secure/nvshmem/nvshmem_src_"${NVSHMEM_VER}".txz
 RUN mkdir nvshmem_src_${NVSHMEM_VER}
 RUN tar xf nvshmem_src_${NVSHMEM_VER}.txz -C nvshmem_src_${NVSHMEM_VER}
-WORKDIR nvshmem_src_${NVSHMEM_VER}/nvshmem_src
+WORKDIR /tmp/nvshmem_src_${NVSHMEM_VER}/nvshmem_src
 RUN mkdir -p build
-WORKDIR build
+WORKDIR /tmp/nvshmem_src_${NVSHMEM_VER}/nvshmem_src/build
 RUN cmake \
     -DNVSHMEM_PREFIX=/opt/nvshmem \
     -DCMAKE_CUDA_ARCHITECTURES=90a \
