@@ -63,8 +63,9 @@ WORKDIR /tmp/gdrcopy-2.4.4
 RUN make prefix=/opt/gdrcopy -j$(nproc) install
 
 WORKDIR /tmp/gdrcopy-2.4.4/packages
-RUN ls -l
 RUN CUDA=/usr/local/cuda ./build-deb-packages.sh
+RUN pwd
+RUN ls -l
 RUN dpkg -i gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb \
              gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.6.deb \
              gdrcopy_2.4.4_amd64.Ubuntu22_04.deb \
